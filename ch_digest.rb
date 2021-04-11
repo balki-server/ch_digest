@@ -112,11 +112,15 @@ module CHDigest
       REMNANT = 2
     end
     
-    def initialize(csv_data)
+    def initialize(csv_data, omitting_values_of: [])
       super()
       @csv = CSV.new(csv_data)
       @headers = @csv.shift
       @column_xforms = self.class.row_format(@headers)
+      # @omitted_output_cols = omitting_values_of
+      @omitted_output_cols = headers.each_with_index.collect_concat do |name, i|
+        omitting_values_of.include?(name) ? [i] : []
+      end
     end
     
     def self.row_format(headers)
@@ -184,6 +188,9 @@ module CHDigest
         @column_xforms[i].call(val, i)
       end
       keyed_data.sort!
+      keyed_data = keyed_data.each_with_index.map do |keyed_val, i|
+        @omitted_output_cols.include?(i) ? (keyed_val[0...-1] + [nil]) : keyed_val
+      end
       keyed_data.map {|g, r, v| v}
     end
     
@@ -201,22 +208,28 @@ module CHDigest
     opts = OpenStruct.new
     
     OptionParser.new do |parser|
-      parser.banner = "Usage: #{__FILE__} [options] SOURCE.csv DEST.csv"
+      parser.banner = "Usage: #{__FILE__} [options] SOURCE.csv [DEST.csv]"
+      
+      opts.omit_output_for = []
+      parser.on('-i COLUMN', '--omit-output COLUMN', "Omit output for column named COLUMN") do |col_name|
+        opts.omit_output_for |= [col_name]
+      end
     end.parse!(args)
     
-    if args.length != 2
-      $stderr.puts "Invoke with exactly two file path positional arguments"
+    unless (1..2).include?(args.length)
+      $stderr.puts "Invoke with one or two file path positional arguments"
       exit 2
     end
     
-    [opts, Pathname(args[0]), Pathname(args[1])]
+    src_fpath = Pathname(args[0])
+    [opts, src_fpath, args[1] ? Pathname(args[1]) : (src_fpath.parent + ('digest-' + src_fpath.basename.to_s))]
   end
   
   def self.main(args)
     opts, inpath, outpath = parse_args(args)
     
     inpath.open do |infile|
-      reader = Reader.new(infile)
+      reader = Reader.new(infile, omitting_values_of: opts.omit_output_for)
       CSV.open(outpath.to_s, 'wb') do |writer|
         writer << reader.headers
         reader.each {|row| writer << row}

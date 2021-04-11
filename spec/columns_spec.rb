@@ -5,8 +5,10 @@ RSpec.describe "CHDigest::Reader column mapping" do
     CSV.generate {|csv| yield csv}
   end
   
-  def read_content
-    CHDigest::Reader.new(csv_content {|csv| yield csv})
+  def read_content(**opts)
+    args = [csv_content {|csv| yield csv}]
+    args << opts unless opts.empty?
+    CHDigest::Reader.new(*args)
   end
   
   %w[
@@ -63,5 +65,14 @@ RSpec.describe "CHDigest::Reader column mapping" do
     col_idx = r.headers.index('Severity')
     expect(col_idx).to_not be_nil
     expect(r.map {|row| row[col_idx]}).to be == (0..5).map {|sev_n| "SV#{sev_n}"}
+  end
+  
+  specify "omitting description" do
+    r = read_content(omitting_values_of: %w[description]) do |csv|
+      csv << %w[id name unspec description]
+      csv << ['123', 'foo', 'bar', 'baz']
+    end
+    out_row = r.shift
+    expect(out_row).to be == ['123', 'foo', nil, 'bar']
   end
 end
