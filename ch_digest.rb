@@ -191,6 +191,7 @@ module CHDigest
     opts = OpenStruct.new
     
     OptionParser.new do |parser|
+      parser.banner = "Usage: #{__FILE__} [options] SOURCE.csv DEST.csv"
     end.parse!(args)
     
     if args.length != 2
