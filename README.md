@@ -1,6 +1,6 @@
 # ch_digest
 
-A custom tool for digesting exported data from Clubhouse for use by Shōgun.
+A custom tool for digesting exported data from Clubhouse.
 
 ## Ruby Requirements
 
