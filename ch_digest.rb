@@ -6,6 +6,14 @@ require 'pathname'
 module CHDigest
   class Reader
     module Transforms
+      # Each public module function produces an Array of Arrays, where each
+      # inner Array contains an ordering key, an output column name, and --
+      # optionally -- a Proc to convert the input value.
+      #
+      # NOTE: The ordering key is not limited to integers, but only integers
+      # were used in the initial implementation.  Fractional numbers might be
+      # helpful if reordering or insertion of addtional columns is necessary.
+      
       module_function \
       def id
         [[1, 'id']]
