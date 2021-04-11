@@ -183,6 +183,7 @@ module CHDigest
       end
       nil
     end
+    include Enumerable
   end
   
   def self.parse_args(args)
