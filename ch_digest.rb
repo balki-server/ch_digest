@@ -201,15 +201,16 @@ module CHDigest
     opts = OpenStruct.new
     
     OptionParser.new do |parser|
-      parser.banner = "Usage: #{__FILE__} [options] SOURCE.csv DEST.csv"
+      parser.banner = "Usage: #{__FILE__} [options] SOURCE.csv [DEST.csv]"
     end.parse!(args)
     
-    if args.length != 2
-      $stderr.puts "Invoke with exactly two file path positional arguments"
+    unless (1..2).include?(args.length)
+      $stderr.puts "Invoke with one or two file path positional arguments"
       exit 2
     end
     
-    [opts, Pathname(args[0]), Pathname(args[1])]
+    src_fpath = Pathname(args[0])
+    [opts, src_fpath, args[1] ? Pathname(args[1]) : (src_fpath.parent + ('digest-' + src_fpath.basename.to_s))]
   end
   
   def self.main(args)
