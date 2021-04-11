@@ -7,8 +7,13 @@ RSpec.describe "CHDigest::Reader column mapping" do
   
   def read_content(**opts)
     args = [csv_content {|csv| yield csv}]
-    args << opts unless opts.empty?
-    CHDigest::Reader.new(*args)
+    
+    # Awkward, but compatible with Ruby 2.5+ and 3.0+
+    if opts.empty?
+      CHDigest::Reader.new(*args)
+    else
+      CHDigest::Reader.new(*args, **opts)
+    end
   end
   
   %w[
