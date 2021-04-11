@@ -86,21 +86,23 @@ module CHDigest
         [[18, 'description']]
       end
       
-      private
-      def self.extract_subfield(sfname)
-        lambda do |val|
-          next if val.nil?
-          val.split(/;\s*/).collect_concat do |sf|
-            sfname_i, sfval_i = sf.split(/:\s*/, 2)
-            (sfname_i == sfname) ? [sfval_i] : []
-          end.first
+      class << self
+        private
+        def extract_subfield(sfname)
+          lambda do |val|
+            next if val.nil?
+            val.split(/;\s*/).collect_concat do |sf|
+              sfname_i, sfval_i = sf.split(/:\s*/, 2)
+              (sfname_i == sfname) ? [sfval_i] : []
+            end.first
+          end
         end
-      end
-      
-      def self.extract_severity
-        lambda do |val|
-          sfval = extract_subfield('severity').call(val)
-          sfval ? "SV#{sfval}" : nil
+        
+        def extract_severity
+          lambda do |val|
+            sfval = extract_subfield('severity').call(val)
+            sfval ? "SV#{sfval}" : nil
+          end
         end
       end
     end
